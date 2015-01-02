@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Licensed to the Apache Software Foundation (ASF) under one or more
+contributor license agreements. See the NOTICE file distributed with
+this work for additional information regarding copyright ownership.
+The ASF licenses this file to You under the Apache License, Version 2.0
+(the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd">
+
+    <import resource="common.xml" />
+
+    <camelContext xmlns="http://camel.apache.org/schema/spring">
+        <route>
+            <from uri="restlet:/persons?restletMethod=POST"/>
+
+            <to uri="bean:ldapProcessor?method=authenticate" />
+            <to uri="bean:tokenManager?method=createSession" />
+        </route>
+        
+        <route>
+            <from uri="restlet:/persons?restletMethod=OPTIONS"/>
+
+            <to uri="bean:ldapProcessor?method=processCORS" />
+        </route>
+
+        <route>
+            <from uri="restlet:/persons/{personId}?restletMethods=PUT,DELETE"/>
+            <choice>
+                <when>
+                    <simple>${header.CamelHttpMethod} == 'GET'</simple>
+                    <setBody>
+                        <simple>select * from person where id = ${header.personId}</simple>
+                    </setBody>
+                </when>
+                <when>
+                    <simple>${header.CamelHttpMethod} == 'PUT'</simple>
+                    <setBody>
+                        <simple>update person set firstName='${header.firstName}', lastName='${header.lastName}' where id = ${header.personId}</simple>
+                    </setBody>
+                </when>
+                <when>
+                    <simple>${header.CamelHttpMethod} == 'DELETE'</simple>
+                    <setBody>
+                        <simple>delete from person where id = ${header.personId}</simple>
+                    </setBody>
+                </when>
+                <otherwise>
+                    <stop/>
+                </otherwise>
+            </choice>
+            <to uri="jdbc:dataSource"/>
+        </route>
+        
+        <route>
+            <from uri="restlet:/customers?restletMethods=GET"/>
+            <removeHeader headerName="CamelHttpUri"/> 
+            <filter>            
+            <method ref="tokenManager" method="validateSession"/>
+            <to uri="http://localhost:8081/camel/customer"/>
+        	</filter>
+        </route>
+        
+        <route>
+            <from uri="restlet:/logout?restletMethods=POST"/>
+            <to uri="bean:tokenManager?method=invalidateToken" />
+        </route>
+        
+         <route>
+            <from uri="restlet:/logout?restletMethods=OPTIONS"/>
+            <to uri="bean:ldapProcessor?method=processCORS" />
+        </route>
+        
+        <route>
+            <from uri="restlet:/customers?restletMethod=OPTIONS"/>
+            <to uri="bean:ldapProcessor?method=processCORS" />
+        </route>
+        
+        <route>
+            <from uri="restlet:/persons/{personId}?restletMethods=GET"/>
+            <to uri="bean:ldapProcessor?method=getUser" />
+        </route>
+
+        <route>
+            <from uri="restlet:/persons?restletMethod=GET"/>
+            <to uri="bean:ldapProcessor?method=process" />
+        </route>
+
+    </camelContext>
+</beans>

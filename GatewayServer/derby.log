@@ -1,0 +1,15 @@
+----------------------------------------------------------------
+Thu Jan 01 22:14:11 CST 2015:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.2.0 - (1582446): instance a816c00e-014a-a8d9-c284-00000525be40 
+on database directory memory:C:\project_work\camel-example-restlet-jdbc\dataSource with class loader WebAppClassLoader=An example showing how to create REST API with Camel
+		Restlet and JDBC components@3ac3fd8b 
+Loaded from file:/C:/Users/gesmalla/.m2/repository/org/apache/derby/derby/10.10.2.0/derby-10.10.2.0.jar
+java.vendor=Oracle Corporation
+java.runtime.version=1.8.0_20-b26
+user.dir=C:\project_work\camel-example-restlet-jdbc
+os.name=Windows 8.1
+os.arch=amd64
+os.version=6.3
+derby.system.home=null
+derby.stream.error.method=org.springframework.jdbc.datasource.embedded.OutputStreamFactory.getNoopOutputStream
+Database Class Loader started - derby.database.classpath=''
