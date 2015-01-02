@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:camel="http://camel.apache.org/schema/spring"
+	xsi:schemaLocation="
+         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+         http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<!-- first, define your individual @Configuration classes as beans -->
+  <bean id="customerService" name="customerService" class="venuproject.uwf.services.edu.CustomerService" />
+  <bean id="dataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource"> 
+  <property name="driverClass" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />  
+  <property name="url" value="jdbc:sqlserver://localhost:1433;DatabaseName=gateway" />
+  <property name="username"  value="wireless" />       
+  <property name="password"  value="wireless123" />        
+ </bean> 
+  
+  <camelContext xmlns="http://camel.apache.org/schema/spring">
+    <route>
+      <!-- incoming requests from the servlet is routed -->
+      <from uri="servlet:///customer"/>
+      <setBody>
+        <constant>
+          SELECT * FROM dbo.Customer
+        </constant>
+      </setBody>
+      <to uri="jdbc:dataSource?useHeadersAsParameters=false"/>
+      <to uri="bean:customerService?method=retrieveCustomers" />
+    </route>
+    
+
+  </camelContext>
+</beans>
